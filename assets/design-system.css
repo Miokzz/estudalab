@@ -1,0 +1,156 @@
+/* EstudaLab shared subject shell. Load after each subject's legacy styles. */
+body.el-app {
+  --bg:#f2f5ef;--panel:#fff;--surface:#fff;--surface2:#eaf1e5;
+  --ink:#18352e;--ink2:#465e53;--muted:#586e60;--sub:#586e60;
+  --line:#d5e1d2;--stroke:#d5e1d2;--border:#d5e1d2;
+  --green:#286c4d;--accent:#286c4d;--accent2:#e0edda;--accent-bg:#e0edda;
+  --soft:#edf3e7;--mint:#dcebd1;--lime:#c9f46d;--nav:#143e32;--nav2:#214f3d;
+  --red:#a33436;--gold:#825c1a;--shadow:0 5px 15px #143e3206;--r:20px;
+  --el-sidebar-width:260px;--el-subject:#286c4d;--el-subject-soft:#e2efda;
+  margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  color-scheme:light;
+}
+body.el-app[data-el-subject="fisica"]{--el-subject:#365e8d;--el-subject-soft:#e7eef9}
+body.el-app[data-el-subject="matematica"]{--el-subject:#71508f;--el-subject-soft:#f0e8f7}
+body.el-app[data-el-subject="redacao"]{--el-subject:#28746a;--el-subject-soft:#e1f0e9}
+body.el-app.dark {
+  --bg:#14221b;--panel:#1d3025;--surface:#1d3025;--surface2:#263d2d;
+  --ink:#edf4e6;--ink2:#cadac0;--muted:#b4c5ad;--sub:#b4c5ad;
+  --line:#3d5541;--stroke:#3d5541;--border:#3d5541;
+  --green:#b4e775;--accent:#b4e775;--accent2:#334d2c;--accent-bg:#334d2c;
+  --soft:#263d2d;--mint:#334d2c;--nav:#102b21;--nav2:#1a3d2c;
+  --red:#ffaaa3;--gold:#efcc83;--shadow:0 5px 15px #0002;
+  --el-subject:#b4e775;--el-subject-soft:#2b442d;color-scheme:dark;
+}
+body.el-app *,body.el-app *::before,body.el-app *::after{box-sizing:border-box}
+.el-sidebar svg,.el-header svg{width:21px;height:21px;flex:none;vertical-align:middle}
+.el-shell a{color:inherit;text-decoration:none}
+.el-shell button,.el-shell select{font:inherit}
+.el-shell button{cursor:pointer}
+.el-shell button:disabled{cursor:not-allowed;opacity:.55}
+.el-shell [hidden]{display:none!important}
+.el-app :where(a,button,input,textarea,select,[tabindex]):focus-visible{outline:3px solid var(--green);outline-offset:4px}
+.el-app ::selection{background:#c9f46d;color:#143e32}
+.el-skip-link{position:fixed;top:12px;left:16px;z-index:120;padding:12px 18px;border-radius:12px;background:var(--nav);color:#fff;transform:translateY(-180%);font-weight:700}
+.el-skip-link:focus{transform:translateY(0)}
+.el-sidebar{position:fixed;inset:0 auto 0 0;z-index:60;width:var(--el-sidebar-width);background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:27px 21px 20px;overflow-y:auto;overscroll-behavior:contain}
+.el-brand-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:35px}
+.el-brand{display:inline-flex;gap:10px;align-items:center;font-size:25px;font-weight:850;letter-spacing:-1.1px;color:var(--green)!important;min-height:44px}
+.el-brand-mark{height:38px;width:38px;display:grid;place-items:center;border-radius:11px;background:#143e32;color:#c9f46d;transform:rotate(-6deg)}
+.el-brand-mark svg{width:24px;height:24px}
+.el-selector-label,.el-nav-label{font-size:10px;line-height:1.4;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);margin:0 0 9px 8px}
+.el-subject-select{width:100%;min-height:47px;border:1px solid var(--line);border-radius:12px;padding:10px 32px 10px 13px;background:var(--el-subject-soft);color:var(--ink);font-weight:750}
+.el-nav-label{margin-top:28px;margin-bottom:11px}
+.el-route-nav{display:grid;gap:6px}
+.el-route{width:100%;min-height:46px;border:1px solid transparent;border-radius:11px;padding:11px 12px;display:flex;gap:11px;align-items:center;background:transparent;color:var(--muted);text-align:left;font-size:13px!important;font-weight:650!important;line-height:1.45;transition:background .15s,color .15s}
+.el-route span{min-width:0;overflow-wrap:anywhere}
+.el-route:hover{background:var(--soft);color:var(--ink)}
+.el-route.el-active{background:var(--nav);color:#f1f9eb;border-color:var(--nav);box-shadow:0 3px 0 #0a251c20}
+.el-route.el-active svg{color:#c9f46d}
+.el-study-card{position:relative;margin-top:auto;padding:26px 15px 15px;padding-top:18px;border:1px solid var(--line);border-radius:19px;background:var(--el-subject-soft);display:flex;flex-direction:column;gap:7px;flex-shrink:0;isolation:isolate}
+.el-route-nav+.el-study-card{margin-top:32px}
+.el-study-art{width:100px;height:100px;object-fit:contain;align-self:center;margin-top:-7px;margin-bottom:1px}
+.el-progress-label{font-size:13px;font-weight:750}
+.el-progress{appearance:none;width:100%;height:7px;border:0;border-radius:20px;overflow:hidden;background:var(--panel);color:var(--el-subject)}
+.el-progress::-webkit-progress-bar{background:var(--panel)}
+.el-progress::-webkit-progress-value{background:var(--el-subject);border-radius:20px}
+.el-progress::-moz-progress-bar{background:var(--el-subject);border-radius:20px}
+.el-progress-text{font-size:11px;color:var(--muted)}
+.el-stage{margin-left:var(--el-sidebar-width);min-width:0;min-height:100svh}
+.el-header{min-height:86px;padding:18px 38px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;background:var(--bg)}
+.el-breadcrumb{display:flex;align-items:center;flex-wrap:wrap;gap:10px;min-width:0;color:var(--muted);font-size:12px;line-height:1.5;flex:1}
+.el-breadcrumb a{display:inline-flex;align-items:center;min-height:44px}
+.el-breadcrumb a:hover{text-decoration:underline;text-underline-offset:4px;color:var(--green)}
+.el-crumb-separator{opacity:.55}
+.el-current-title{color:var(--ink);font-weight:750;overflow-wrap:anywhere}
+.el-theme-button,.el-icon-button{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);display:inline-flex;justify-content:center;align-items:center;gap:8px;min-height:44px;min-width:44px;padding:10px 12px;flex:none}
+.el-theme-button{font-size:11px!important;font-weight:700!important}
+.el-theme-button:hover,.el-icon-button:hover{background:var(--soft);border-color:var(--green)}
+.el-menu-button,.el-drawer-close{display:none}
+.el-backdrop{position:fixed;inset:0;background:#081d16a8;z-index:55}
+/* Scope overrides to the retained content; subject grids and interactions stay intact. */
+.el-content{width:auto!important;min-width:0;max-width:1280px!important;margin:0 auto!important;padding:32px 38px 60px!important;background:transparent!important;color:var(--ink);overflow-wrap:break-word}
+.el-content:focus{outline:none}
+.el-content :where(h1,h2,h3,h4){color:var(--ink)}
+.el-content :where(h1,.title){letter-spacing:-1.3px;line-height:1.15}
+.el-content :where(.lead,.muted){color:var(--muted)}
+.el-content :where(.panel,.lesson-card,.card,.tile,.theme-tile,.score-box,.feedback,.simcard){border-color:var(--line);background:var(--panel);color:var(--ink);box-shadow:var(--shadow)}
+.el-content :where(.tile,.score-box,.feedback,.simcard){background:var(--soft)}
+.el-content :where(.panel,.lesson-card,.card){border-radius:20px}
+.el-content :where(button,input,select,textarea){font:inherit}
+.el-content :where(button,.btn){min-height:44px}
+.el-content :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),select,textarea){max-width:100%;background:var(--panel);border-color:var(--line);color:var(--ink)}
+.el-content :where(input[type="range"],input[type="checkbox"],input[type="radio"]){accent-color:var(--green)}
+.el-content :where(.btn){border-radius:11px;background:var(--green);color:#fff}
+.el-content :where(.btn.secondary,.btn.outline){background:var(--panel);border:1px solid var(--line);color:var(--ink)}
+.el-content :where(.btn):disabled{opacity:.5;cursor:not-allowed}
+.el-content :where(.option,.quiz-opt,.choice){color:var(--ink);background:var(--panel);border-color:var(--line)}
+.el-content :where(.option.selected,.quiz-opt.selected,.choice.active){border-color:var(--green);background:var(--accent-bg);color:var(--ink)}
+.el-content :where(.option.right,.quiz-opt.good){border-color:var(--green)}
+.el-content :where(.option.wrong,.quiz-opt.bad){border-color:var(--red)}
+.el-content :where(.field label,.feedback p){color:var(--ink2)}
+.el-content :where(img,video,canvas){max-width:100%}
+.el-content :where(pre){max-width:100%;overflow-x:auto}
+.el-content :where(.table-wrap){max-width:100%;overflow-x:auto}
+.el-content [hidden]{display:none!important}
+.el-app.dark .el-content :where(.btn:not(.secondary):not(.outline):not(.btn-outline)){color:#14221b}
+.el-app.dark .el-content :where(.note,.tip,.hint,.heroaside,.theme-intro,.flashcard,.flashbox,.step,.stat,.statcard,.theme-open,.theme-tile,.favorite,.feedback,.status,.alert){background:var(--soft);color:var(--ink);border-color:var(--line)}
+.el-app.dark .el-content :where(.note p,.tip p,.theme-tile p,.heroaside p,.flashcard small,.theme-open,.counter,.check){color:var(--muted)}
+@media(min-width:1500px){body.el-app{--el-sidebar-width:280px}.el-sidebar{padding-left:28px;padding-right:28px}.el-header{padding-left:max(38px,calc((100vw - var(--el-sidebar-width) - 1204px)/2));padding-right:max(38px,calc((100vw - var(--el-sidebar-width) - 1204px)/2))}}
+@media(max-width:1100px){body.el-app{--el-sidebar-width:235px}.el-sidebar{padding-left:16px;padding-right:16px}.el-header{padding-left:26px;padding-right:26px}.el-content{padding-left:26px!important;padding-right:26px!important}}
+@media(max-width:900px){
+  .el-stage{margin-left:0}.el-sidebar{width:min(310px,calc(100vw - 40px));transform:translateX(-105%);visibility:hidden;transition:transform .2s ease,visibility .2s;box-shadow:16px 0 50px #081d1622;padding:22px}
+  .el-menu-open .el-sidebar{transform:translateX(0);visibility:visible}
+  .el-menu-button,.el-drawer-close{display:inline-flex}.el-drawer-open{overflow:hidden}
+  .el-brand-row{margin-bottom:25px}.el-header{min-height:76px;padding:12px 22px;gap:12px}.el-content{padding:26px 22px 48px!important}
+}
+@media(max-width:560px){
+  .el-header{padding:10px 16px;gap:10px}.el-breadcrumb{gap:5px;font-size:10px}.el-breadcrumb a{min-height:22px}.el-breadcrumb .el-current-title{flex-basis:100%;font-size:12px}
+  .el-breadcrumb .el-crumb-separator:nth-last-child(2){display:none}.el-theme-button{padding:10px;min-width:44px}.el-theme-button span{display:none}
+  .el-content{padding:22px 16px 40px!important}.el-content :where(h1,.title){letter-spacing:-.9px;font-size:clamp(28px,7.5vw,39px)}
+}
+@media(prefers-reduced-motion:reduce){.el-app,.el-app *,.el-app *::before,.el-app *::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+@media(forced-colors:active){.el-route.el-active{outline:2px solid Highlight}.el-progress{forced-color-adjust:auto}.el-brand-mark{border:1px solid CanvasText}}
+/* Familiar classroom opening blocks, with the same four subject illustrations. */
+.el-content .hero{background:#153e32;color:#f1f8e9;border:1px solid #284e39;border-radius:24px;box-shadow:none}
+.el-content .hero h1{color:#f1f8e9}
+.el-content .hero h1 :where(em,span){color:#c9f46d!important;font-style:normal}
+.el-content .hero p{color:#d0dfca}
+.el-content .hero .eyebrow{color:#c9f46d}
+.el-content .hero .btn{background:#c9f46d;color:#153e32}
+.el-content .hero :where(.btn-outline,.btn.secondary,.btn.outline){background:transparent;border:1px solid #7e9b80;color:#f1f8e9}
+.el-content .hero-art,.el-content .hero-graphic{background:url('biology-3d.webp') center/contain no-repeat;min-height:215px;position:relative;inset:auto;opacity:1;width:100%;display:block}
+.el-content .hero-art>*,.el-content .hero-graphic>*{display:none}
+.el-app[data-el-subject="fisica"] .el-content .hero-graphic{background-image:url('physics-3d.webp')}
+.el-content .hero .shape{display:block;flex:0 0 180px;width:180px;height:180px;font-size:0;opacity:1;background:url('math-3d.webp') center/contain no-repeat}
+.el-app[data-el-subject="redacao"] .el-content .hero{padding:30px;gap:24px}
+.el-content .heroaside{padding:22px 115px 22px 22px;border-radius:19px;background:#254e3b url('writing-3d.webp') right 10px center/100px auto no-repeat;border:1px solid #4a6b4b;min-width:0}
+.el-content .heroaside .heroscore{font-size:48px;color:#c9f46d;white-space:nowrap}
+.el-content .heroaside .heroscore span{color:#d0dfca!important}
+.el-content .heroaside p{font-size:12px;color:#d0dfca}
+.el-app.dark .el-content .heroaside{background:#254e3b url('writing-3d.webp') right 10px center/100px auto no-repeat;color:#f1f8e9}
+@media(max-width:1100px) and (min-width:901px){.el-content .heroaside{padding-right:22px;background-image:none}.el-app.dark .el-content .heroaside{background-image:none}}
+@media(max-width:640px){
+  .el-content .hero{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:0}
+  .el-content .hero-main{padding:26px 24px 0}
+  .el-content .hero-art,.el-content .hero-graphic{width:140px;height:125px;min-height:125px;align-self:flex-end;margin:5px 18px 12px}
+  .el-content .hero .shape{width:120px;height:120px;flex-basis:120px;align-self:flex-end;margin-top:8px}
+  .el-app[data-el-subject="redacao"] .el-content .hero{padding:25px 22px;gap:20px}
+  .el-content .heroaside{padding:18px 100px 18px 18px;background-size:85px auto}
+  .el-content .heroaside .heroscore{font-size:40px}
+}
+/* Shared study surfaces also cover the retained calculators and text editor. */
+body.el-app .el-content :is(.info,.formula,.result,.twocards>div,.cycle>div,.motivador,.motivating-collapse,.proposal-bottom,.edit-preview,.note,.example){background:var(--soft);border-color:var(--line);color:var(--ink)}
+body.el-app .el-content :is(.bigvalue,.result b,.formula,.note strong,.note b,.stat b,.card .foot,.video strong,.handsteps b){color:var(--green)}
+body.el-app .el-content :is(.labtab,.handbuttons button,.category-tile){background:var(--panel);color:var(--ink);border-color:var(--line)}
+body.el-app .el-content :is(.labtab.active,.handbuttons button.selected,.category-tile.active){background:var(--accent-bg);color:var(--ink);border-color:var(--green)}
+body.el-app.dark .el-content :is(p,li,small,label,.eyebrow,.tiny,.small-caps,.counter,.mot-num,.source-note,.proposal-label,.motivating-collapse summary,.motivating-collapse summary span){color:var(--ink2)}
+body.el-app.dark .el-content :is(.hero p,.heroaside p){color:#d0dfca}
+body.el-app.dark .el-content .hero .eyebrow{color:#c9f46d}
+body.el-app.dark .el-content :is(.math-flashcard,.math-flashcard.flipped,.cycle>div,.twocards>div,.info,.video,.step,.score-box){background:var(--soft);border-color:var(--line);color:var(--ink)}
+body.el-app .el-content :is(.svgcard,.handviz){background:#f4f7fb;color:#243b5b;border-color:var(--line)}
+body.el-app .el-content :is(.option,.choice,.quiz-opt).selected{background:var(--accent-bg);border-color:var(--green);color:var(--ink)}
+body.el-app .el-content :is(.option,.choice,.quiz-opt).right,body.el-app .el-content :is(.option,.choice,.quiz-opt).good{background:#e0f3e5;color:#17452a;border-color:#36794e}
+body.el-app .el-content :is(.option,.choice,.quiz-opt).wrong,body.el-app .el-content :is(.option,.choice,.quiz-opt).bad{background:#fce5e2;color:#7e292c;border-color:#ad4a4a}
+body.el-app .el-content #searchInput{display:block;width:100%;padding:12px;margin:8px 0 24px;border:1px solid var(--line);border-radius:10px}
+body.el-app .el-content>#main{margin-top:24px}
