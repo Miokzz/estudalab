@@ -4,9 +4,10 @@ const WINDOW_MS = 5 * 60 * 1000;
 const MAX_CLIENTS = 600;
 const TIMEOUT_MS = 23000;
 const MODEL = 'openai/gpt-5.4-mini';
+const FALLBACK_MODELS = ['openai/gpt-4.1-mini', 'openai/gpt-4o-mini', 'google/gemini-2.5-flash'];
 const CRITERIA = ['C1', 'C2', 'C3', 'C4', 'C5'];
 const CHECKS = ['tese', 'topico', 'argumentacao', 'coesao', 'agente', 'acao', 'meio', 'finalidade', 'detalhamento'];
-const FAILURE_CODES = new Set(['invalid_schema', 'invalid_evidence', 'invalid_justification', 'unsupported_score', 'gateway_unavailable', 'incomplete_response', 'timeout']);
+const FAILURE_CODES = new Set(['invalid_schema', 'invalid_evidence', 'invalid_justification', 'unsupported_score', 'gateway_unavailable', 'incomplete_response', 'timeout', 'model_discovery_denied', 'model_discovery_invalid', 'account_unavailable', 'no_eligible_model', 'fallback_unavailable']);
 let inFlight = 0;
 
 const RUBRIC = `Você é um corretor pedagógico de redação no padrão ENEM. A avaliação é uma simulação assistida por IA, não oficial e sujeita a erros; não afirme confiabilidade automática.
@@ -49,7 +50,7 @@ function validate(value, schema) {
   return schema.type === 'boolean' && typeof value === 'boolean';
 }
 
-function safeOutput(value, mode, texto, schema) {
+function safeOutput(value, mode, texto, schema, model = MODEL) {
   if (!validate(value, schema)) throw new Error('invalid_schema');
   const exact = quote => typeof quote === 'string' && quote.trim().length > 0 && texto.includes(quote);
   if (value.forcas.length !== value.evidenciasForcas.length || value.evidenciasForcas.some(v => !exact(v.trecho))) throw new Error('invalid_evidence');
@@ -68,7 +69,7 @@ function safeOutput(value, mode, texto, schema) {
     }
   }
   const { competencias, justificativas, ...feedback } = value;
-  const result = { origem: 'ia', modelo: MODEL, ...feedback };
+  const result = { origem: 'ia', modelo: model, ...feedback };
   if (mode === 'completa') {
     result.competencias = competencias;
     result.justificativas = justificativas;
@@ -99,6 +100,33 @@ function rateAllowed(req, now) {
   if (entry.count >= 4) return false;
   entry.count += 1;
   return true;
+}
+
+function providerFailure(code, status) {
+  const error = new Error(code);
+  error.status = status;
+  return error;
+}
+
+async function eligibleFallback(token, signal) {
+  const response = await fetch('https://ai-gateway.vercel.sh/v1/models?include_availability', {
+    method: 'GET', headers: { Authorization: `Bearer ${token}` }, signal
+  });
+  if (!response.ok) throw providerFailure('model_discovery_denied', response.status);
+  let catalog;
+  try { catalog = await response.json(); } catch { throw new Error('model_discovery_invalid'); }
+  if (!catalog || !Array.isArray(catalog.data) || catalog.data.length > 2000) throw new Error('model_discovery_invalid');
+  const runtime = catalog.request_context_availability?.http;
+  if ((typeof runtime === 'string' ? runtime : runtime?.status) !== 'available') throw new Error('account_unavailable');
+  for (const model of FALLBACK_MODELS) {
+    const entry = catalog.data.find(row => row?.id === model);
+    if (!entry || entry.model_eligibility?.status !== 'eligible' || entry.model_eligibility.evaluated_runtime !== 'http') continue;
+    if (entry.no_training !== undefined && entry.no_training !== 'all') continue;
+    if (entry.tags !== undefined && (!Array.isArray(entry.tags) || !entry.tags.includes('structured-output'))) continue;
+    if (entry.supported_parameters !== undefined && (!Array.isArray(entry.supported_parameters) || !entry.supported_parameters.includes('response_format') || !entry.supported_parameters.includes('structured_outputs'))) continue;
+    return model;
+  }
+  throw new Error('no_eligible_model');
 }
 
 module.exports = async function handler(req, res) {
@@ -139,19 +167,22 @@ module.exports = async function handler(req, res) {
   inFlight += 1;
   try {
     const work = async () => {
-      const response = await fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
+      const infer = model => fetch('https://ai-gateway.vercel.sh/v1/chat/completions', {
         method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, signal: abort.signal,
-        body: JSON.stringify({ model: MODEL, reasoning_effort: 'low', max_tokens: 6000, response_format: { type: 'json_schema', json_schema: { name: 'correcao_enem', strict: true, schema } }, messages: [{ role: 'system', content: RUBRIC }, { role: 'user', content: JSON.stringify({ tema, modo, texto }) }] })
+        body: JSON.stringify({ model, ...(model === MODEL ? { reasoning_effort: 'low' } : {}), max_tokens: 6000, response_format: { type: 'json_schema', json_schema: { name: 'correcao_enem', strict: true, schema } }, messages: [{ role: 'system', content: RUBRIC }, { role: 'user', content: JSON.stringify({ tema, modo, texto }) }] })
       });
-      if (!response.ok) {
-        const failure = new Error('gateway_unavailable');
-        failure.status = response.status;
-        throw failure;
+      let selectedModel = MODEL;
+      let response = await infer(selectedModel);
+      if (response.status === 403) {
+        // Account-scoped discovery is not inference and cannot purchase/unlock a model.
+        selectedModel = await eligibleFallback(token, abort.signal);
+        response = await infer(selectedModel); // One recovery attempt only; never a loop.
       }
+      if (!response.ok) throw providerFailure(selectedModel === MODEL ? 'gateway_unavailable' : 'fallback_unavailable', response.status);
       const raw = await response.json();
       const choice = raw.choices?.[0];
       if (choice?.finish_reason !== 'stop' || choice.message?.refusal || typeof choice.message?.content !== 'string' || choice.message.content.length > 40000) throw new Error('incomplete_response');
-      return safeOutput(JSON.parse(choice.message.content), modo, texto, schema);
+      return safeOutput(JSON.parse(choice.message.content), modo, texto, schema, selectedModel);
     };
     const timeout = new Promise((_, reject) => { timer = setTimeout(() => { abort.abort(); reject(new Error('timeout')); }, TIMEOUT_MS); });
     const result = await Promise.race([work(), timeout]);
@@ -159,9 +190,9 @@ module.exports = async function handler(req, res) {
   } catch (error) {
     // Only allowlisted codes and numeric HTTP status; no exception/provider text.
     const code = FAILURE_CODES.has(error?.message) ? error.message : 'unexpected_error';
-    const status = code === 'gateway_unavailable' && Number.isInteger(error.status) && error.status >= 400 && error.status <= 599 ? error.status : undefined;
+    const status = Number.isInteger(error?.status) && error.status >= 400 && error.status <= 599 ? error.status : undefined;
     console.warn('correction_failed', status === undefined ? { code } : { code, status });
-    return json(res, 503, { erro: 'Não foi possível validar uma correção completa por IA. Nenhuma nota foi atribuída. Use o diagnóstico local ou tente novamente.' });
+    return json(res, 503, { erro: 'Não foi possível validar uma correção completa por IA. Nenhuma nota foi atribuída. Use o diagnóstico local ou tente novamente.', codigo: code });
   } finally {
     clearTimeout(timer);
     inFlight -= 1;

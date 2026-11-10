@@ -25,3 +25,14 @@ test('structural feedback never pretends keyword detection is semantic evaluatio
 test('all 60 writing proposals have unique IDs and three original motivating texts',()=>{
  const topics=declaration('redacao','TOPICS');assert.equal(topics.length,60);assert.equal(new Set(topics.map(t=>t.id)).size,60);for(const t of topics){assert.equal(t.texts.length,3);assert.ok(t.texts.every(x=>x.body.length>50))}assert.ok(topics.find(t=>t.id==='mob1').category.includes('mobilidade'));
 });
+
+test('free topic full essay survives reload, versions and partial-mode edits',()=>{
+ const storage=memory(),store=core.createStore(storage,'Tema');const d=store.get('Personalizar tema…');
+ d.customTema='A democratização do acesso à leitura';d.modo='completa';d.campos.introducao='Treino anterior';
+ assert.equal(core.text(d),'Treino anterior');
+ d.textoCompleto='Introdução livre.\n\nDesenvolvimento independente.\n\nConclusão.';store.save(d,true,100);
+ const loaded=core.createStore(storage,'Outro').active();assert.equal(core.text(loaded),d.textoCompleto);assert.equal(loaded.customTema,d.customTema);
+ loaded.modo='d1';loaded.campos.d1='Treino isolado';assert.equal(core.text(loaded),'Treino isolado');store.save(loaded,true,200);
+ loaded.modo='completa';assert.equal(core.text(loaded),d.textoCompleto);loaded.textoCompleto='';assert.equal(core.text(loaded),'');
+ assert.equal(store.list()[0].versions[1].textoCompleto,d.textoCompleto);
+});
