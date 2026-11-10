@@ -14,13 +14,13 @@ body.el-app[data-el-subject="fisica"]{--el-subject:#365e8d;--el-subject-soft:#e7
 body.el-app[data-el-subject="matematica"]{--el-subject:#71508f;--el-subject-soft:#f0e8f7}
 body.el-app[data-el-subject="redacao"]{--el-subject:#28746a;--el-subject-soft:#e1f0e9}
 body.el-app.dark {
-  --bg:#14221b;--panel:#1d3025;--surface:#1d3025;--surface2:#263d2d;
-  --ink:#edf4e6;--ink2:#cadac0;--muted:#b4c5ad;--sub:#b4c5ad;
-  --line:#3d5541;--stroke:#3d5541;--border:#3d5541;
-  --green:#b4e775;--accent:#b4e775;--accent2:#334d2c;--accent-bg:#334d2c;
-  --soft:#263d2d;--mint:#334d2c;--nav:#102b21;--nav2:#1a3d2c;
-  --red:#ffaaa3;--gold:#efcc83;--shadow:0 5px 15px #0002;
-  --el-subject:#b4e775;--el-subject-soft:#2b442d;color-scheme:dark;
+  --bg:#12161f;--panel:#1b2230;--surface:#1b2230;--surface2:#252e3e;
+  --ink:#f0f3fa;--ink2:#c8d1e1;--muted:#aebbd0;--sub:#aebbd0;
+  --line:#3b485e;--stroke:#3b485e;--border:#3b485e;
+  --green:#a8dcbf;--accent:#a8dcbf;--accent2:#293d3c;--accent-bg:#293d3c;
+  --soft:#252e3e;--mint:#293d3c;--nav:#2c3a50;--nav2:#34455d;
+  --red:#ffb5b5;--gold:#f1cf8a;--shadow:0 5px 15px #0002;
+  --el-subject:#a8dcbf;--el-subject-soft:#243b35;color-scheme:dark;
 }
 body.el-app *,body.el-app *::before,body.el-app *::after{box-sizing:border-box}
 .el-sidebar svg,.el-header svg{width:21px;height:21px;flex:none;vertical-align:middle}
@@ -158,3 +158,34 @@ body.el-app .el-content>#main{margin-top:24px}
 /* Writing workshop shares the subject palette; the illustration has its own slot. */
 body.el-app .el-content .heroaside.writing-hero-art{padding:22px;background:#254e3b;color:#f1f8e9}body.el-app .writing-hero-art .eyebrow{color:#c9f46d}body.el-app .el-content .writing-hero-art h2{color:#f1f8e9}
 .el-content .hero .pill{color:#e7f4db;border-color:#76917f}
+
+/* Night palette: neutral reading surfaces. Light mode remains unchanged. */
+body.el-app.dark[data-el-subject="fisica"]{--el-subject:#a9c9ff;--el-subject-soft:#25354e}
+body.el-app.dark[data-el-subject="matematica"]{--el-subject:#cdb9ff;--el-subject-soft:#343047}
+body.el-app.dark[data-el-subject="redacao"]{--el-subject:#f2c49c;--el-subject-soft:#3b322e}
+body.el-app.dark .el-header{background:var(--bg)}
+body.el-app.dark .el-brand-mark{background:#303e54;color:#bceacb}
+body.el-app.dark .el-route.el-active{background:#2d3b50;color:#f0f3fa;border-color:#51627c;box-shadow:none}
+body.el-app.dark .el-route.el-active svg{color:#bceacb}
+body.el-app.dark .el-content .hero{background:#232e43;border-color:#41516c;color:var(--ink)}
+body.el-app.dark .el-content .hero h1{color:var(--ink)}
+body.el-app.dark .el-content .hero h1 :is(em,span){color:#bceacb!important}
+body.el-app.dark .el-content .hero :is(p,.eyebrow,.pill){color:#cfdaeb}
+body.el-app.dark .el-content .hero .btn{background:#bceacb;color:#16232b}
+body.el-app.dark .el-content .hero :is(.btn-outline,.btn.secondary,.btn.outline){background:transparent;color:#f0f3fa;border-color:#8795ad}
+body.el-app.dark .el-content .heroaside,body.el-app.dark .el-content .heroaside.writing-hero-art{background:#2d3950;border-color:#4c5e7b;color:#f0f3fa}
+body.el-app.dark .el-content .writing-hero-art :is(h2,.eyebrow){color:#e0e9f6}
+body.el-app.dark .el-content .heroaside p{color:#cfdaeb}
+body.el-app.dark .el-content :is(.callout,.lesson-quiz,.choice-card,.phase-desc,.arc-step,.empty,.topic-icon,.stat-icon,.card-tag,.tag,.phase,.color-pill,.legend button,.option .letter,.step,.status,.alert){background:var(--soft);color:var(--ink2);border-color:var(--line)}
+body.el-app.dark .el-content :is(.lesson-card:hover,.card:hover,.theme-tile:hover,.category-tile:hover){background:#273248;border-color:#8294b2}
+body.el-app.dark .el-content :is(th,td:first-child){color:var(--ink);background:var(--soft);border-color:var(--line)}
+body.el-app.dark .el-content :is(.note.rose,.feedback.bad){background:#3b2c38;border-color:#795b6b;color:#ffd7dc}
+body.el-app.dark .el-content :is(.check.yes,.check.no){background:var(--panel);color:var(--ink2)}
+body.el-app.dark .el-content .check.yes{border-color:#81b59b}
+body.el-app.dark .el-content .check.no{border-color:#c4909b}
+body.el-app.dark .el-content :is(.option,.choice,.quiz-opt).right,body.el-app.dark .el-content :is(.option,.choice,.quiz-opt).good{background:#213b34;color:#d1f3e1;border-color:#78ad91}
+body.el-app.dark .el-content :is(.option,.choice,.quiz-opt).wrong,body.el-app.dark .el-content :is(.option,.choice,.quiz-opt).bad{background:#432f37;color:#ffd8de;border-color:#c88998}
+body.el-app.dark .el-content :is(.lesson-body strong,.panel h3,.note p,.note.rose p,.callout p,.phase-desc){color:var(--ink)}
+body.el-app.dark .el-content .category-tile.chosen{background:var(--el-subject-soft);border-color:var(--el-subject);color:var(--ink)}
+body.el-app.dark .el-content :is(.theme-intro-stats,.heroaside .heroscore){background:#2d3950;color:#e0e9f6}
+body.el-app.dark .el-subject-select,body.el-app.dark .el-content :is(input:not([type="range"]):not([type="checkbox"]),select,textarea){border-color:#62728b}
