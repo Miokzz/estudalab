@@ -35,7 +35,7 @@
     return String(value);
   }
 
-  // Freshness is lexicographic: previous-round avoidance, then lifetime exposure.
+  // Priority: avoid the previous round, diversify template families, then lifetime exposure.
   // Within an exposure tier, greedily balance both actual topic and difficulty labels.
   function selectQuestions(items, config) {
     if (!Array.isArray(items)) throw new TypeError('items must be an array');
@@ -45,6 +45,7 @@
     var idOf = config.idOf || function (item) { return item.id; };
     var topicOf = config.topicOf || function (item) { return item.topic; };
     var difficultyOf = config.difficultyOf || function () { return 'medium'; };
+    var familyOf = config.familyOf || idOf;
     var rng = config.rng || Math.random;
     var history = config.history || {};
     var seen = Object.assign(Object.create(null), history.seen || {});
@@ -56,13 +57,13 @@
       var id = stableId(idOf(item));
       if (ids.has(id)) return;
       ids.add(id);
-      candidates.push({ item: item, id: id, topic: topicOf(item), difficulty: difficultyOf(item) });
+      candidates.push({ item: item, id: id, topic: topicOf(item), difficulty: difficultyOf(item), family: familyOf(item) });
     });
     if (candidates.length < count) throw new RangeError('Not enough unique questions for requested count');
     candidates = shuffle(candidates, rng);
-    var topics = new Map(); var difficulties = new Map(); var selected = [];
+    var topics = new Map(); var difficulties = new Map(); var families = new Map(); var selected = [];
     function score(candidate) {
-      return [last.has(candidate.id) ? 1 : 0, seen[candidate.id] || 0,
+      return [last.has(candidate.id) ? 1 : 0, families.get(candidate.family) || 0, seen[candidate.id] || 0,
         (topics.get(candidate.topic) || 0) + (difficulties.get(candidate.difficulty) || 0)];
     }
     function less(a, b) {
@@ -77,6 +78,7 @@
       }
       var chosen = candidates.splice(best, 1)[0];
       selected.push(chosen);
+      families.set(chosen.family, (families.get(chosen.family) || 0) + 1);
       topics.set(chosen.topic, (topics.get(chosen.topic) || 0) + 1);
       difficulties.set(chosen.difficulty, (difficulties.get(chosen.difficulty) || 0) + 1);
       seen[chosen.id] = (seen[chosen.id] || 0) + 1;

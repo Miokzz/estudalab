@@ -12,7 +12,9 @@
   const notice=()=>storageFailed?'<p class="study-notice" role="status">O navegador não conseguiu acessar o armazenamento. Mantenha esta página aberta para continuar; o progresso desta sessão pode não ficar salvo.</p>':'';
   function history(subject){const v=read(key('attempts',subject),[]);return Array.isArray(v)?v.filter(x=>x&&Array.isArray(x.questions)&&x.questions.length===15&&Array.isArray(x.answers)&&x.answers.length===15&&Number.isInteger(x.correct)&&x.correct>=0&&x.correct<=15):[]}
   function configQuiz(subject,questions,options){
-    const bank=questions.map(q=>({...q,id:String(q.id||hash(q.prompt))}));
+    const extras=[...(window.EstudaLabScience?.[subject]||[]),...(subject==='matematica'?window.EstudaLabMath||[]:subject==='redacao'?window.EstudaLabWriting||[]:[])];
+    const prepared=window.EstudaLabBank?window.EstudaLabBank.prepare(subject,[...questions,...extras]).questions:[...questions,...extras];
+    const bank=prepared.map(q=>({...q,id:String(q.id||hash(q.prompt))}));
     configs.set(subject,{questions:bank,...options});
     if(!sessions.has(subject)){
       const saved=read(key('session',subject),null);
@@ -23,9 +25,9 @@
   function quizBody(subject){
     const config=configs.get(subject),session=sessions.get(subject);
     if(!session){
-      const topics=[...new Set(config.questions.map(q=>q.topic))];
+      const topics=[...new Set(config.questions.map(q=>q.scope||q.topic))];
       const attempts=history(subject),best=attempts.length?Math.max(...attempts.map(a=>a.correct)):null;
-      return `<div class="study-heading"><span class="eyebrow">Praticar e entender</span><h1>Simulados de ${esc(config.label)}</h1><p>15 questões por sessão. O sorteio considera os assuntos e seu histórico para priorizar questões menos vistas.</p></div><section class="panel study-start"><h2>O que vamos treinar?</h2><label for="study-topic-${subject}">Assunto</label><select id="study-topic-${subject}" data-study-topic><option value="">Todos os assuntos</option>${topics.map(t=>{const n=config.questions.filter(q=>q.topic===t).length;return `<option value="${esc(t)}" ${n<15?'disabled':''}>${esc(t)} · ${n} questões${n<15?' (mínimo: 15)':''}</option>`}).join('')}</select><p class="muted">${config.questions.length} questões no banco. As alternativas mudam de posição; a explicação aparece na revisão final.</p><button class="btn" data-study-action="start">Começar 15 questões</button>${attempts.length?`<p>${attempts.length} sessões concluídas · melhor resultado: ${best}/15.</p>`:''}</section>${notice()}`;
+      return `<div class="study-heading"><span class="eyebrow">Praticar e entender</span><h1>Simulados de ${esc(config.label)}</h1><p>15 questões por sessão. O sorteio considera os assuntos e seu histórico para priorizar questões menos vistas.</p></div><section class="panel study-start"><h2>O que vamos treinar?</h2><label for="study-topic-${subject}">Assunto</label><select id="study-topic-${subject}" data-study-topic><option value="">Todos os assuntos</option>${topics.map(t=>{const n=config.questions.filter(q=>(q.scope||q.topic)===t).length;return `<option value="${esc(t)}" ${n<15?'disabled':''}>${esc(t)} · ${n} questões${n<15?' (mínimo: 15)':''}</option>`}).join('')}</select><p class="muted">${config.questions.length} questões no banco. As alternativas mudam de posição; a explicação aparece na revisão final.</p><button class="btn" data-study-action="start">Começar 15 questões</button>${attempts.length?`<p>${attempts.length} sessões concluídas · melhor resultado: ${best}/15.</p>`:''}</section>${notice()}`;
     }
     if(session.finished){
       const correct=session.questions.filter((q,i)=>q.answer===session.answers[i]).length;
@@ -49,14 +51,14 @@
     const action=event.target.closest('[data-study-action]')?.dataset.studyAction;if(!action)return;
     if(action==='start'){
       const topic=root.querySelector('[data-study-topic]').value;
-      const pool=config.questions.filter(q=>!topic||q.topic===topic);
+      const pool=config.questions.filter(q=>!topic||(q.scope||q.topic)===topic);
       let h=read(key('selection',subject),null);
       if(!h||typeof h!=='object'||Array.isArray(h)){
         const old=read('estudalab.quiz.variety.v3.'+config.legacyNamespace,[]);h={seen:{},last:[]};
         if(Array.isArray(old)){for(const q of pool){const id=String(q.legacyId||q.id);h.seen[q.id]=old.filter(x=>x===id).length;if(old.slice(-15).includes(id))h.last.push(q.id)}}
       }
       try{
-        const picked=engine.selectQuestions(pool,{count:15,history:h,idOf:q=>q.id,topicOf:q=>q.topic,difficultyOf:q=>q.difficulty||'medium'});
+        const picked=engine.selectQuestions(pool,{count:15,history:h,idOf:q=>q.id,topicOf:q=>q.topic,difficultyOf:q=>q.difficulty||'medium',familyOf:q=>q.family||q.id});
         const questions=picked.questions.map(q=>{const shuffled=engine.shuffleAnswers(q.options,q.answer);return {...q,options:shuffled.options,answer:shuffled.answerIndex}});
         s={id:crypto.randomUUID(),startedAt:Date.now(),questions,index:0,answers:Array(15).fill(null),finished:false};
         sessions.set(subject,s);write(key('selection',subject),picked.history);
