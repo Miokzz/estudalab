@@ -11,4 +11,4 @@ Arquitetura: preservar documentos estáticos e dados locais; extrair módulos co
 
 ## Estado
 
-Etapa 1 em implementação. Achados: quatro cascas de navegação independentes; CSS repetido; IDs duplicados em temas; normalizador da API transforma competências ausentes em zero. Não há autenticação nem banco remoto configurado no código atual.
+Etapa 1 publicada pelo PR #2 (2d1fe3e). Etapa 2 validada localmente: motor comum de seleção, sessões persistentes, revisão de erros e quatro níveis de repetição espaçada. 23 testes passaram; simulado completo de 15 questões, retomada após reload, filtro de erros e agendamento do flashcard verificados no navegador. Bancos com poucos itens por subtema ainda apresentam filtros desabilitados; ampliar e revisar na etapa 3. Achados pendentes: IDs duplicados em temas; normalizador da API transforma competências ausentes em zero. Não há autenticação nem banco remoto configurado no código atual.
