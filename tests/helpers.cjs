@@ -14,7 +14,7 @@ function declaration(subject,name,scope={}){
 }
 function pageData(subject,expression){
  const node={value:'',innerHTML:'',textContent:'',style:{},dataset:{},classList:{add(){},remove(){},toggle(){}},addEventListener(){},setAttribute(){},querySelector(){return node},querySelectorAll(){return []}};
- const context={document:{querySelector:()=>node,querySelectorAll:()=>[],getElementById:()=>node,addEventListener(){},body:node},window:{addEventListener(){},scrollTo(){}},location:{hash:''},history:{replaceState(){}},localStorage:{getItem:()=>null,setItem(){}},EstudaLabShell:{mount:()=>({setRoute(){},setProgress(){}})},EstudaLabStudyUI:{quizHTML:()=>'',flashHTML:()=>''},console,URL};
+ const context={document:{querySelector:()=>node,querySelectorAll:()=>[],getElementById:()=>node,addEventListener(){},body:node},window:{addEventListener(){},scrollTo(){}},location:{hash:''},history:{replaceState(){},pushState(){}},localStorage:{getItem:()=>null,setItem(){}},EstudaLabShell:{mount:()=>({setRoute(){},setProgress(){}})},EstudaLabStudyUI:{quizHTML:()=>'',flashHTML:()=>''},EstudaLabWritingCore:require('../assets/writing-core.js'),console,URL};
  vm.createContext(context);
  vm.runInContext(fs.readFileSync(path.join(__dirname,'..',subject,'app.js'),'utf8'),context,{timeout:2000});
  return vm.runInContext(expression,context);
