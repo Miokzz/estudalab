@@ -154,3 +154,7 @@ body.el-app .el-content :is(.option,.choice,.quiz-opt).right,body.el-app .el-con
 body.el-app .el-content :is(.option,.choice,.quiz-opt).wrong,body.el-app .el-content :is(.option,.choice,.quiz-opt).bad{background:#fce5e2;color:#7e292c;border-color:#ad4a4a}
 body.el-app .el-content #searchInput{display:block;width:100%;padding:12px;margin:8px 0 24px;border:1px solid var(--line);border-radius:10px}
 body.el-app .el-content>#main{margin-top:24px}
+
+/* Writing workshop shares the subject palette; the illustration has its own slot. */
+body.el-app .el-content .heroaside.writing-hero-art{padding:22px;background:#254e3b;color:#f1f8e9}body.el-app .writing-hero-art .eyebrow{color:#c9f46d}body.el-app .el-content .writing-hero-art h2{color:#f1f8e9}
+.el-content .hero .pill{color:#e7f4db;border-color:#76917f}

@@ -43,3 +43,8 @@
 @media(max-width:900px){.category-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.motivadores-grid{grid-template-columns:1fr}.theme-list{grid-template-columns:1fr}}
 @media(max-width:650px){.category-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.proposal-actions,.proposal-bottom,.edit-preview-head{flex-direction:column;align-items:stretch}.proposal-bottom{padding:16px}.proposal-actions select,.proposal-actions button{width:100%}.theme-intro{align-items:stretch}.theme-intro-stats{min-width:72px;padding:14px}.theme-intro-stats strong{font-size:32px}.theme-intro-stats span{font-size:9px}.search-row{flex-wrap:wrap}.search-row .btn{padding:12px}.search-row input{flex-basis:100%}.theme-tile-inner{padding:17px}}
 
+
+/* Comfortable text editing and saved versions. */
+#editor textarea{font-size:17px;line-height:1.85;min-height:240px;resize:vertical} .writing-saved-text{white-space:pre-wrap;font:inherit;line-height:1.8;overflow-wrap:anywhere} #draft-history .btn{margin:8px 8px 0 0}.feedback blockquote{border-left:3px solid var(--accent);padding-left:16px;margin:16px 0;overflow-wrap:anywhere}.result-score small{font-size:20px} #save-status{min-height:1.5em} .category-tile{min-height:90px}
+
+.writing-hero-art{display:flex;align-items:center;gap:12px}.writing-hero-art img{width:130px;height:130px;object-fit:contain}.writing-hero-art h2{font-size:22px;line-height:1.2;margin:8px 0}.writing-hero-art p{font-size:14px}@media(max-width:500px){.writing-hero-art img{width:100px;height:100px}}
