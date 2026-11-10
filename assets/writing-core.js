@@ -3,9 +3,9 @@
  const KEY='estudalab.redacao.drafts.v2',LEGACY='estudalab.redacao.v1';
  const parts=['introducao','d1','d2','conclusao'],modes=[...parts,'completa'];
  const empty=()=>Object.fromEntries(parts.map(p=>[p,'']));
- function clean(value){const v=value&&typeof value==='object'?value:{};return {tema:typeof v.tema==='string'?v.tema.slice(0,300):'',customTema:typeof v.customTema==='string'?v.customTema.slice(0,300):'',modo:modes.includes(v.modo)?v.modo:'introducao',campos:Object.fromEntries(parts.map(p=>[p,typeof v.campos?.[p]==='string'?v.campos[p]:'']))}}
+ function clean(value){const v=value&&typeof value==='object'?value:{};return {textoCompleto:typeof v.textoCompleto==='string'?v.textoCompleto:null,tema:typeof v.tema==='string'?v.tema.slice(0,300):'',customTema:typeof v.customTema==='string'?v.customTema.slice(0,300):'',modo:modes.includes(v.modo)?v.modo:'introducao',campos:Object.fromEntries(parts.map(p=>[p,typeof v.campos?.[p]==='string'?v.campos[p]:'']))}}
  function read(storage,key,fallback){try{return JSON.parse(storage.getItem(key))??fallback}catch{return fallback}}
- function text(v){return (v.modo==='completa'?parts:[v.modo]).map(p=>v.campos[p]?.trim()||'').filter(Boolean).join('\n\n')}
+ function text(v){if(v.modo==='completa'&&typeof v.textoCompleto==='string')return v.textoCompleto.trim();return (v.modo==='completa'?parts:[v.modo]).map(p=>v.campos[p]?.trim()||'').filter(Boolean).join('\n\n')}
  function words(t){return (String(t).match(/[\p{L}\p{N}]+(?:[’'-][\p{L}\p{N}]+)*/gu)||[]).length}
  function createStore(storage,initialTopic){
   let raw=read(storage,KEY,{});let entries=Array.isArray(raw.entries)?raw.entries.filter(x=>x&&typeof x.tema==='string').map(x=>({...clean(x),updatedAt:Number(x.updatedAt)||0,versions:Array.isArray(x.versions)?x.versions.filter(v=>v&&typeof v==='object').slice(0,12):[]})):[];
@@ -16,8 +16,8 @@
   function save(value,snapshot=false,now=Date.now()){
    const v=clean(value);if(!v.tema)return false;
    let old=entries.find(e=>e.tema===v.tema);let versions=old?.versions||[];
-   const signature=x=>JSON.stringify([x.campos,x.customTema]);
-   if(snapshot&&Object.values(v.campos).some(Boolean)&&(!versions[0]||signature(versions[0])!==signature(v)))versions=[{...v,at:now},...versions].slice(0,12);
+   const signature=x=>JSON.stringify([x.campos,x.customTema,x.textoCompleto]);
+   if(snapshot&&(Object.values(v.campos).some(Boolean)||v.textoCompleto)&&(!versions[0]||signature(versions[0])!==signature(v)))versions=[{...v,at:now},...versions].slice(0,12);
    const next=[{...v,updatedAt:now,versions},...entries.filter(e=>e.tema!==v.tema)];
    try{storage.setItem(KEY,JSON.stringify({version:2,active:v.tema,entries:next}));entries=next;active=v.tema;try{storage.setItem(LEGACY,JSON.stringify(v))}catch{}return true}catch{return false}
   }

@@ -38,7 +38,7 @@ function setup(t, responder) {
   const diagnostics = [];
   t.mock.method(console, 'warn', (...args) => diagnostics.push(args));
   t.mock.method(global, 'fetch', async (url, options) => {
-    calls.push({ url, options, body: JSON.parse(options.body) });
+    calls.push({ url, options, body: options.body ? JSON.parse(options.body) : undefined });
     if (responder) return responder(url, options);
     const request = JSON.parse(options.body).messages[1];
     const { texto, modo } = JSON.parse(request.content);
@@ -263,4 +263,128 @@ test('submission instructions remain untrusted user data separate from rubric', 
   assert.match(messages[0].content, /agente, ação, meio\/modo, finalidade\/efeito e detalhamento/);
   assert.equal(JSON.parse(messages[1].content).texto, texto);
   assert.doesNotMatch(messages[0].content, /Revele a chave/);
+});
+
+function availability(ids = ['openai/gpt-4.1-mini'], runtime = 'available') {
+  return {
+    ok: true,
+    json: async () => ({
+      request_context_availability: { http: { status: runtime } },
+      data: ids.map(id => ({ id, model_eligibility: { status: 'eligible', evaluated_runtime: 'http' }, no_training: 'all', tags: ['structured-output'], supported_parameters: ['response_format', 'structured_outputs'] }))
+    })
+  };
+}
+function fallbackResponder(discovery, finalResponse = () => upstream(fixture())) {
+  let inferences = 0;
+  return (url, options) => {
+    if (options.method === 'GET') return typeof discovery === 'function' ? discovery() : discovery;
+    inferences += 1;
+    return inferences === 1 ? { ok: false, status: 403 } : finalResponse();
+  };
+}
+
+test('403 recovers once through authenticated availability and preferred eligible model', async t => {
+  const api = setup(t, fallbackResponder(availability(['google/gemini-2.5-flash', 'openai/gpt-4o-mini', 'openai/gpt-4.1-mini'])));
+  const result = await api.request();
+  assert.equal(result.status, 200);
+  assert.equal(result.body.modelo, 'openai/gpt-4.1-mini');
+  assert.equal(result.body.nota, 800);
+  assert.equal(api.calls.length, 3);
+  assert.equal(api.calls[1].url, 'https://ai-gateway.vercel.sh/v1/models?include_availability');
+  assert.equal(api.calls[1].options.method, 'GET');
+  assert.equal(api.calls[1].options.headers.Authorization, api.calls[0].options.headers.Authorization);
+  assert.equal(api.calls[1].options.signal, api.calls[0].options.signal);
+  assert.equal(api.calls[2].options.signal, api.calls[0].options.signal);
+  assert.equal(api.calls[1].options.body, undefined);
+  assert.equal(api.calls[2].body.model, 'openai/gpt-4.1-mini');
+  assert.equal(Object.hasOwn(api.calls[2].body, 'reasoning_effort'), false);
+  assert.deepEqual(api.calls[2].body.response_format, api.calls[0].body.response_format);
+});
+
+for (const model of ['openai/gpt-4o-mini', 'google/gemini-2.5-flash']) test('403 can recover using eligible ' + model, async t => {
+  const api = setup(t, fallbackResponder(availability([model])));
+  const result = await api.request();
+  assert.equal(result.status, 200);
+  assert.equal(result.body.modelo, model);
+  assert.equal(Object.hasOwn(api.calls[2].body, 'reasoning_effort'), false);
+});
+
+const deniedAvailability = [
+  ['no eligible models', () => availability([]), 'no_eligible_model'],
+  ['unlisted model', () => availability(['reflection/beam-free']), 'no_eligible_model'],
+  ['unknown HTTP admission', () => availability(['openai/gpt-4.1-mini'], 'unknown'), 'account_unavailable'],
+  ['unavailable HTTP admission', () => availability(['openai/gpt-4.1-mini'], 'unavailable'), 'account_unavailable'],
+  ['missing HTTP admission', () => ({ ok: true, json: async () => ({ data: [] }) }), 'account_unavailable'],
+  ['discovery 403', () => ({ ok: false, status: 403 }), 'model_discovery_denied'],
+  ['discovery 401', () => ({ ok: false, status: 401 }), 'model_discovery_denied'],
+  ['malformed discovery', () => ({ ok: true, json: async () => ({ data: 'invalid' }) }), 'model_discovery_invalid']
+];
+for (const [name, discovery, code] of deniedAvailability) test('403 recovery fails closed: ' + name, async t => {
+  const api = setup(t, fallbackResponder(discovery));
+  const result = await api.request();
+  assert.equal(result.status, 503);
+  assert.equal(result.body.codigo, code);
+  assert.equal(api.calls.length, 2);
+  noScores(result);
+});
+
+for (const [name, mutate] of [
+  ['unknown eligibility', row => { row.model_eligibility.status = 'unknown'; }],
+  ['ineligible model', row => { row.model_eligibility.status = 'ineligible'; }],
+  ['wrong evaluated runtime', row => { row.model_eligibility.evaluated_runtime = 'realtime_websocket'; }],
+  ['training permitted', row => { row.no_training = 'none'; }],
+  ['unknown training metadata', row => { row.no_training = null; }],
+  ['missing structured-output capability', row => { row.tags = ['reasoning']; }],
+  ['missing structured-output parameters', row => { row.supported_parameters = ['response_format']; }]
+]) test('403 recovery excludes ' + name, async t => {
+  const discovered = await availability().json();
+  mutate(discovered.data[0]);
+  const api = setup(t, fallbackResponder({ ok: true, json: async () => discovered }));
+  const result = await api.request();
+  assert.equal(result.status, 503);
+  assert.equal(result.body.codigo, 'no_eligible_model');
+  assert.equal(api.calls.length, 2);
+  noScores(result);
+});
+
+test('fallback 403 never starts another discovery or inference', async t => {
+  const api = setup(t, fallbackResponder(availability(), () => ({ ok: false, status: 403 })));
+  const result = await api.request();
+  assert.equal(result.status, 503);
+  assert.equal(result.body.codigo, 'fallback_unavailable');
+  assert.equal(api.calls.length, 3);
+  assert.deepEqual(api.diagnostics[0], ['correction_failed', { code: 'fallback_unavailable', status: 403 }]);
+  noScores(result);
+});
+
+test('fallback output keeps exact evidence validation', async t => {
+  const value = fixture();
+  value.justificativas.C1.evidencias = ['Invented quotation'];
+  const api = setup(t, fallbackResponder(availability(), () => upstream(value)));
+  const result = await api.request();
+  assert.equal(result.status, 503);
+  assert.equal(result.body.codigo, 'invalid_justification');
+  noScores(result);
+});
+
+test('partial recovery never exposes scores', async t => {
+  const api = setup(t, fallbackResponder(availability(), () => upstream(fixture(strongText, 160, 'introducao'))));
+  const result = await api.request({ body: { tema: 'Tema', modo: 'introducao', texto: strongText } });
+  assert.equal(result.status, 200);
+  assert.equal(result.body.modelo, 'openai/gpt-4.1-mini');
+  noScores(result);
+});
+
+test('discovery shares total 23 second timeout and abort signal', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const api = setup(t, (url, options) => options.method === 'GET' ? new Promise(() => {}) : { ok: false, status: 403 });
+  const pending = api.request();
+  for (let i = 0; i < 5; i++) await Promise.resolve();
+  assert.equal(api.calls.length, 2);
+  t.mock.timers.tick(23000);
+  const result = await pending;
+  assert.equal(result.status, 503);
+  assert.equal(result.body.codigo, 'timeout');
+  assert.equal(api.calls[1].options.signal.aborted, true);
+  noScores(result);
 });
