@@ -20,3 +20,11 @@ O site não inclui informações pessoais, nomes de estudantes, instituições e
 ## Publicação
 
 Projeto estático com endpoint serverless em `api/corrigir.js`, sem necessidade de framework de front-end.
+
+## Desenvolvimento e verificações
+
+Para testar a página inicial: `node --test tests/home.test.cjs` (Node.js 22 ou superior). Não há dependências de front-end nem etapa de build.
+
+Para pré-visualizar: `python -m http.server 4173 --bind 127.0.0.1`, depois abra `http://127.0.0.1:4173/`. A API serverless continua dependendo da Vercel.
+
+A direção visual e o escopo do primeiro incremento estão em `docs/interface-audit.md`. Os renders decorativos da entrada ficam em `assets/*-3d.webp`; a página mantém as chaves de progresso existentes e nunca grava dados de estudo.
